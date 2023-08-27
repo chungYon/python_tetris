@@ -103,7 +103,7 @@ class Tetris:
         start_arrow = windows.PrintStartMap(start_win) # 화살표 위치 받아오기
 
         if start_arrow: # 에 화살표가 있다면
-            windows.PrintMap(stdscr) #세팅 화면 띄우기
+            windows.PrintSettingMap(stdscr) #세팅 화면 띄우기
         
         self.Game(stdscr) # 게임 시작
         
