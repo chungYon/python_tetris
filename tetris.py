@@ -100,10 +100,10 @@ class Tetris:
         curses.curs_set(0) # 커서 안보이게 함
 
         start_win = curses.newwin(30, 120, 0, 0) # 새 창 만들기
-        start_arrow = start.PrintStartMap(start_win) # 화살표 위치 받아오기
+        start_arrow = windows.PrintStartMap(start_win) # 화살표 위치 받아오기
 
-        if start_arrow: # setting에 화살표가 있다면
-            setting.PrintSettingMap(stdscr) #세팅 화면 띄우기
+        if start_arrow: # 에 화살표가 있다면
+            windows.PrintMap(stdscr) #세팅 화면 띄우기
         
         self.Game(stdscr) # 게임 시작
         
@@ -335,7 +335,7 @@ class Tetris:
         begin_y = self.game_box_y
 
         stdscr.clear()
-        game.PrintGameMap(stdscr)
+        windows.PrintGameMap(stdscr)
         self.PrintBlockList(stdscr)
         self.PrintBlock(stdscr)
 
