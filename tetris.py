@@ -7,7 +7,7 @@ from curses import wrapper
 import time
 import keyboard
 import tetromino
-from windows import game, setting, start
+import windows import game, setting, start
 
 class Tetris:
 
