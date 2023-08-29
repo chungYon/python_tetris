@@ -29,7 +29,6 @@ class Tetromino:
     def __init__(self, block_type):
         self.block_type = block_type
         self.rotation = 0
-        self.current_block = Tetromino.block_list[self.block_type][self.rotation]
     
     def RotateClockWise(self):
         self.rotation = (self.rotation + 1) % ROTATION_NUM
@@ -40,7 +39,7 @@ class Tetromino:
             sel.rotation = ROTATION_NUM - 1
     
     def GetCurrentBlock(self):
-        return self.current_block    
+        return Tetromino.block_list[self.block_type][self.rotation]   
     
 
 def GenerateRandomBlock():

@@ -45,6 +45,7 @@ class Tetris:
         self.das_flag = False
         self.arr = 0.015
         self.arr_flag = False
+        self.rotate_flag = False
         self.sdf = 0.01
         self.stop = 2
         self.map_height = 20
@@ -127,14 +128,22 @@ class Tetris:
             if keyboard.is_pressed('down'):
                 self.drop_speed = self.sdf # 소프트 드랍 속도
 
+            if keyboard.is_pressed('up'):
+                if not self.rotate_flag:
+                    if self.CheckRotation(): # 회전이 가능한지 검사
+                        self.block.RotateClockWise()
+                        self.rotate_flag = True
+
+            
             if keyboard.is_pressed('left'):
                 self.DAS_ARR_MoveLeft() # 왼쪽 무빙 담당
             
             elif keyboard.is_pressed('right'):# 오른쪽 무빙 담당
                 self.DAS_ARR_MoveRight()
-
-            keyboard.on_release_key('left', self.InitRelease) # 키를 땔시에 작동하는 함수
-            keyboard.on_release_key('right', self.InitRelease)
+            
+            keyboard.on_release_key('up', self.InitReleaseU)
+            keyboard.on_release_key('left', self.InitReleaseLR) # 키를 땔시에 작동하는 함수
+            keyboard.on_release_key('right', self.InitReleaseLR)
             
             down_elapsed_time = self.GetElapsedDownTime() # 경과시간 구하기
 
@@ -150,9 +159,11 @@ class Tetris:
 
             # 바닥에서 굳히는 타이머
             if self.IsFloor() or self.CheckHeightObstacle(1):  # 세로로 장애물이 없다면
+
                 self.stop_end_timer = time.time() # 굳히기 타이머 세기
                 self.InitDownTimer() # 드랍타이머 초기화
             else:
+                
                 self.InitStopTimer()
 
             stop_elapsed_time = self.GetElapsedStopTime() # 굳히기 타이머 경과시간 구하기
@@ -254,6 +265,10 @@ class Tetris:
         if self.map[self.block_y][self.block_x + dir]:
             return True
         return False
+
+    def CheckRotation(self):
+        '''회전이 가능한지 확인하는 메소드'''
+        return True
     
     def CheckHeightObstacle(self, dir):
         '''세로로 장애물 검사하는 메소드'''
@@ -279,13 +294,17 @@ class Tetris:
             return False
         return True
 
-    def InitRelease(self, evt):
-        '''키보드 때면 초기화할 것들 정리해놓은 메소드'''
+    def InitReleaseLR(self, evt):
+        '''좌우 키보드 때면 초기화할 것들 정리해놓은 메소드'''
         self.das_flag = False
         self.arr_flag = False
 
         self.InitDASTimer()
         self.InitARRTimer()
+
+    def InitReleaseU(self, evt):
+        '''좌우 키보드 때면 초기화할 것들 정리해놓은 메소드'''
+        self.rotate_flag = False
 
     def InitTimer(self):
         '''모든 타이머를 초기화하는 메소드'''
