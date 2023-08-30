@@ -173,77 +173,79 @@ class Tetris:
                 self.block_x = 3 # 위치 초기화
                 self.block_y = 0
                 self.InitDownTimer() # 드랍타이머 초기화
+                self.block = self.block_queue.pop(0) # 하나 뽑기
+                self.CheckRefill()
 
             self.PrintMap(stdscr) # 맵 출력
 
     def DAS_ARR_MoveLeft(self): 
 
-        if not self.IsLeftWall(): # 맵의 맨 왼쪽이 아니라면
+        #if not self.IsLeftWall(): # 맵의 맨 왼쪽이 아니라면
 
-            if not self.CheckBlockCollision(-1): # 블럭 왼쪽에 장애물이 없다면
+        if not self.CheckBlockCollision(-1): # 블럭 왼쪽에 장애물이 없다면
+            
+            # 무빙하는거 만든거임 몇초 지나면 주르륵 움직이게 하는거 구현한거
+            if not self.arr_flag: 
+
+                if not self.das_flag:
+
+                    self.InitDASTimer()
+                    self.MoveBlock(-1)
+                    self.das_flag = True
                 
-                # 무빙하는거 만든거임 몇초 지나면 주르륵 움직이게 하는거 구현한거
-                if not self.arr_flag: 
+                elif self.das_flag:
 
-                    if not self.das_flag:
+                    self.DAS_end_timer = time.time()
+                    DAS_elapsed_time = self.GetElapsedDASTime()
 
-                        self.InitDASTimer()
+                    if  DAS_elapsed_time > self.das:
+
+                        self.InitARRTimer()
                         self.MoveBlock(-1)
-                        self.das_flag = True
-                    
-                    elif self.das_flag:
+                        self.arr_flag = True
+            else:
 
-                        self.DAS_end_timer = time.time()
-                        DAS_elapsed_time = self.GetElapsedDASTime()
+                self.ARR_end_timer = time.time()
+                ARR_elapsed_time = self.GetElapsedARRTime()
 
-                        if  DAS_elapsed_time > self.das:
+                if  ARR_elapsed_time > self.arr:
 
-                            self.InitARRTimer()
-                            self.MoveBlock(-1)
-                            self.arr_flag = True
-                else:
-
-                    self.ARR_end_timer = time.time()
-                    ARR_elapsed_time = self.GetElapsedARRTime()
-
-                    if  ARR_elapsed_time > self.arr:
-
-                        self.ARR_start_timer = self.ARR_end_timer
-                        self.MoveBlock(-1)
+                    self.ARR_start_timer = self.ARR_end_timer
+                    self.MoveBlock(-1)
 
     def DAS_ARR_MoveRight(self):
 
-        if not self.IsRightWall(): # 맵의 맨 오른쪽이 아니라면
+        #if not self.IsRightWall(): # 맵의 맨 오른쪽이 아니라면
 
-            if not self.CheckBlockCollision(1): # 블럭 오른쪽에 장애물이 없다면
+        if not self.CheckBlockCollision(1): # 블럭 오른쪽에 장애물이 없다면
 
-                if not self.arr_flag:
+            if not self.arr_flag:
 
-                    if not self.das_flag:
+                if not self.das_flag:
 
-                        self.InitDASTimer()
+                    self.InitDASTimer()
+                    self.MoveBlock(1)
+                    self.das_flag = True
+                
+                elif self.das_flag:
+
+                    self.DAS_end_timer = time.time()
+                    DAS_elapsed_time = self.GetElapsedDASTime()
+
+                    if  DAS_elapsed_time > self.das:
+
+                        self.InitARRTimer()
                         self.MoveBlock(1)
-                        self.das_flag = True
-                    
-                    elif self.das_flag:
+                        self.arr_flag = True
+            else:
 
-                        self.DAS_end_timer = time.time()
-                        DAS_elapsed_time = self.GetElapsedDASTime()
+                self.ARR_end_timer = time.time()
+                ARR_elapsed_time = self.GetElapsedARRTime()
 
-                        if  DAS_elapsed_time > self.das:
+                if  ARR_elapsed_time > self.arr:
 
-                            self.InitARRTimer()
-                            self.MoveBlock(1)
-                            self.arr_flag = True
-                else:
-
-                    self.ARR_end_timer = time.time()
-                    ARR_elapsed_time = self.GetElapsedARRTime()
-
-                    if  ARR_elapsed_time > self.arr:
-
-                        self.ARR_start_timer = self.ARR_end_timer
-                        self.MoveBlock(1)
+                    self.ARR_start_timer = self.ARR_end_timer
+                    self.MoveBlock(1)
 
     def CheckLines(self):
         '''맵에 채워진 줄 검사하는 메소드'''
@@ -287,18 +289,18 @@ class Tetris:
         new_block_x = self.block_x
         new_block_y = self.block_y
 
-        if not width:
-            new_block_y += dir_
-        else:
+        if width:
             new_block_x += dir_
+        else:
+            new_block_y += dir_
 
 
         for y in range(block_height):
             for x in range(block_width):
-                if block[y][x] == 1:
-                    if new_block_x + x > len(self.map[0]) - 1:
+                if block[y][x]:
+                    if new_block_x + x > self.map_width - 1:
                         return True
-                    if new_block_y + y > len(self.map) - 1:
+                    if new_block_y + y > self.map_height - 1:
                         return True
                     if new_block_y + y < 0:
                         return True
@@ -380,6 +382,11 @@ class Tetris:
     def MoveBlock(self, dir):
         self.block_x += dir
 
+    def CheckRefill(self):
+        '''블록 세트를 리필하는 메소드'''
+        if len(self.block_queue) < 4:
+            self.block_queue.extend(tetromino.GenerateRandomBlocks())  #여기 사실 잘 모르겠어...
+
     def PrintMap(self, stdscr):
         ''' 맵에 관련된 모든 것을 프린트하는 메소드'''
         begin_x = self.game_box_x
@@ -419,6 +426,12 @@ class Tetris:
             for x in range(4):
                 if block[y][x]:
                     stdscr.addstr(y + begin_y + self.block_y, (self.block_x + x) * 2 + begin_x, '▣')
+
+        stdscr.addstr(0, 80, "right : {}".format(str(self.CheckBlockCollision(1))))
+        stdscr.addstr(1, 80, "left : {}".format(str(self.CheckBlockCollision(-1))))
+        stdscr.addstr(2, 80, "up : {}".format(str(self.CheckBlockCollision(-1, False))))
+        stdscr.addstr(3, 80, "down : {}".format(str(self.CheckBlockCollision(1, False))))
+
     
     def RecordBlock(self):
         '''움직이는 블럭을 프린트하는 메소드'''
@@ -430,6 +443,8 @@ class Tetris:
             for x in range(4):
                 if block[y][x]:
                     self.map[begin_y + y][begin_x + x] = block[y][x]
+        
+
 # 객체생성
 t = Tetris()
 
