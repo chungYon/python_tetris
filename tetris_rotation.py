@@ -9,10 +9,12 @@ def MakeBlockList():
 
 
     data = '''
-0000001000000100
-1111001000000100
-0000001011110100
-0000001000000100
+
+00000000000000000100
+00000001000000000100
+01111001001111000100
+00000001000000000100
+00000001000000000000
 
 0010010000001100
 1110010011100100
@@ -39,9 +41,9 @@ def MakeBlockList():
 0000010000001000
 0000000000000000
 
-0110011001100110
-0110011001100110
-0000000000000000
+0110000000001100
+0110011011001100
+0000011011000000
 0000000000000000
 
 '''
@@ -62,7 +64,14 @@ def MakeBlockList():
         
         matrix_list.append(matrix)
 
-    for i in range(7):
+    block_list.append([])
+    for j in range(5):
+        block_list[0].append([])
+        for l in range(5):
+            block_list[0][j].append([])
+            block_list[0][j][l].extend(matrix_list[0][l][j * 5 : (j + 1) * 5])
+
+    for i in range(1, 7):
         block_list.append([])
         for j in range(4):
             block_list[i].append([])

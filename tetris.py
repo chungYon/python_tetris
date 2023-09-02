@@ -37,7 +37,7 @@ class Tetris:
 
         self.score = 0
         self.block_type = 0
-        self.block_x = 3
+        self.block_x = 0
         self.block_y = 0
         self.drop_speed = 1
         self.st_speed = 1
@@ -56,7 +56,6 @@ class Tetris:
         self.block_list_box_y = 1
         
         '''
-
         블록타입:
         I_BLOCK = 0
         L_BLOCK = 1
@@ -94,8 +93,6 @@ class Tetris:
 
         '''
 
-        
-
     def Main(self, stdscr):
         '''시작화면, 설정화면, 게임화면을 담당하는 메소드'''
         curses.curs_set(0) # 커서 안보이게 함
@@ -116,6 +113,7 @@ class Tetris:
 
         self.block_queue = tetromino.GenerateRandomBlocks() # 블럭 7개 채우기
         self.block = self.block_queue.pop(0) # 하나 뽑기
+        self.InitBlockPos()
 
         while True:
 
@@ -123,24 +121,54 @@ class Tetris:
             self.drop_speed = self.st_speed # 기본 드랍 속도
 
             if keyboard.is_pressed('esc'):
+
                 break
 
+            if keyboard.is_pressed('c'):
+                pass
+
             if keyboard.is_pressed('down'):
+
                 self.drop_speed = self.sdf # 소프트 드랍 속도
 
             if keyboard.is_pressed('up'):
+
                 if not self.rotate_flag:
-                    if self.CheckRotation(): # 회전이 가능한지 검사
-                        self.block.RotateClockWise()
+
+                    pos = self.FindRotationPos()
+
+                    if pos: # 회전이 가능한지 검사
+
+                        self.block_x = pos[0]
+                        self.block_y = pos[1]
+                        self.block.Rotate()
+
+                        self.rotate_flag = True
+
+            
+            if keyboard.is_pressed('z'):
+
+                if not self.rotate_flag:
+
+                    pos = self.FindRotationPos(False)
+
+                    if pos: # 회전이 가능한지 검사
+                        
+                        self.block_x = pos[0]
+                        self.block_y = pos[1]
+                        self.block.Rotate(False)
                         self.rotate_flag = True
 
             if keyboard.is_pressed('left'):
+
                 self.DAS_ARR_MoveLeft() # 왼쪽 무빙 담당
             
             elif keyboard.is_pressed('right'):# 오른쪽 무빙 담당
+
                 self.DAS_ARR_MoveRight()
             
-            keyboard.on_release_key('up', self.InitReleaseU)
+            keyboard.on_release_key('up', self.InitRotation)
+            keyboard.on_release_key('z', self.InitRotation)
             keyboard.on_release_key('left', self.InitReleaseLR) # 키를 땔시에 작동하는 함수
             keyboard.on_release_key('right', self.InitReleaseLR)
             
@@ -149,18 +177,19 @@ class Tetris:
             # 드랍 타이머
             if down_elapsed_time > self.drop_speed: # 드랍 시간이 지났다면
 
-                if not self.IsFloor(): # 블럭이 맨 밑바닥에 없다면
+                # 블럭이 맨 밑바닥에 없다면
 
-                    if not self.CheckBlockCollision(1, False): # 세로로 장애물이 없다면
+                if not self.CheckBlockCollision(1, self.block.GetCurrentBlock(), self.block_x, self.block_y, False): # 세로로 장애물이 없다면
 
                         self.InitDownTimer() # 드랍 타이머 초기화
                         self.DownBlock() # 블럭 내리기
 
             # 바닥에서 굳히는 타이머
-            if self.IsFloor() or self.CheckBlockCollision(1, False):  # 세로로 장애물이 없다면
+            if self.CheckBlockCollision(1, self.block.GetCurrentBlock(), self.block_x, self.block_y, False):  # 세로로 장애물이 없다면
 
                 self.stop_end_timer = time.time() # 굳히기 타이머 세기
                 self.InitDownTimer() # 드랍타이머 초기화
+
             else:
 
                 self.InitStopTimer()
@@ -170,19 +199,20 @@ class Tetris:
             if stop_elapsed_time > self.stop: # 굳히기 시간이 지났다면
 
                 self.RecordBlock() # 그 자리에 1로 만들기
-                self.block_x = 3 # 위치 초기화
-                self.block_y = 0
                 self.InitDownTimer() # 드랍타이머 초기화
                 self.block = self.block_queue.pop(0) # 하나 뽑기
+                self.InitBlockPos()
                 self.CheckRefill()
 
-            self.PrintMap(stdscr) # 맵 출력
+            self.PrintMap(stdscr) # 맵 출력W
+
+    def InitBlockPos(self):
+        self.block_x = self.block.GetBlockSpawnX()
+        self.block_y = 0
 
     def DAS_ARR_MoveLeft(self): 
 
-        #if not self.IsLeftWall(): # 맵의 맨 왼쪽이 아니라면
-
-        if not self.CheckBlockCollision(-1): # 블럭 왼쪽에 장애물이 없다면
+        if not self.CheckBlockCollision(-1, self.block.GetCurrentBlock(), self.block_x, self.block_y): # 블럭 왼쪽에 장애물이 없다면
             
             # 무빙하는거 만든거임 몇초 지나면 주르륵 움직이게 하는거 구현한거
             if not self.arr_flag: 
@@ -215,9 +245,7 @@ class Tetris:
 
     def DAS_ARR_MoveRight(self):
 
-        #if not self.IsRightWall(): # 맵의 맨 오른쪽이 아니라면
-
-        if not self.CheckBlockCollision(1): # 블럭 오른쪽에 장애물이 없다면
+        if not self.CheckBlockCollision(1, self.block.GetCurrentBlock(), self.block_x, self.block_y): # 블럭 오른쪽에 장애물이 없다면
 
             if not self.arr_flag:
 
@@ -252,48 +280,50 @@ class Tetris:
         line_count = 0
         
         for y in range(self.map_height):
+
             line_flag = True
+
             for x in range(self.map_width):
+
                 if not self.map[y][x]:
                     line_flag = False
+
             if line_flag:
                 line_count += 1
+
         
         return line_count
-    
-    def CheckWidthObstacle(self, dir):
-        '''가로로 장애물 검사하는 메소드'''
-        if self.map[self.block_y][self.block_x + dir]:
-            return True
+
+    def FindRotationPos(self, clockwise=True):
+        '''회전이 가능한지 확인하는 메소드'''
+        block_next = self.block.RotatePeek(clockwise)
+        end_offset_list = self.block.MakeEndOffset(clockwise)
+
+        for eol in end_offset_list:
+
+            offset_x = self.block_x + eol[0]
+            offset_y = self.block_y + eol[1]
+
+            if not self.CheckBlockCollision(0, block_next, offset_x, offset_y):
+
+                return (offset_x, offset_y)
+
         return False
 
-    def CheckRotation(self):
-        '''회전이 가능한지 확인하는 메소드'''
-        return True
     
-    def CheckHeightObstacle(self, dir):
-        '''세로로 장애물 검사하는 메소드'''
-        if self.map[self.block_y + dir][self.block_x]:
-            return True
-        return False
-    
-    def CheckBlockCollision(self, dir_, width=True):
-        '''블럭의 충돌을 총괄하는 메소드'''
-        block = self.block.GetCurrentBlock()
-        block_x = self.block_x
-        block_y = self.block_y
+    def CheckBlockCollision(self, dir_, block, block_x, block_y, width=True):
+        '''블럭간의 충돌과 맵을 총괄하는 메소드'''
 
         block_height = len(block)
         block_width = len(block[0])
 
-        new_block_x = self.block_x
-        new_block_y = self.block_y
+        new_block_x = block_x
+        new_block_y = block_y
 
         if width:
             new_block_x += dir_
         else:
             new_block_y += dir_
-
 
         for y in range(block_height):
             for x in range(block_width):
@@ -306,27 +336,9 @@ class Tetris:
                         return True
                     if new_block_x + x < 0:
                         return True
-                    if self.map[new_block_y + y][new_block_x + x] == 1:
+                    if self.map[new_block_y + y][new_block_x + x]:
                         return True
         return False
-    
-    def IsFloor(self):
-        '''블럭이 밑바닥인지 검사하는 메소드'''
-        if self.block_y < (self.map_height - 1):
-            return False
-        return True
-
-    def IsLeftWall(self):
-        '''블럭이 맨 왼쪽에 있는지 검사하는 메소드'''
-        if self.block_x > 0:
-            return False
-        return True
-
-    def IsRightWall(self):
-        '''블럭이 맨 오른쪽에 있는지 검사하는 메소드'''
-        if self.block_x < (self.map_width - 1):
-            return False
-        return True
 
     def InitReleaseLR(self, evt):
         '''좌우 키보드 때면 초기화할 것들 정리해놓은 메소드'''
@@ -336,7 +348,7 @@ class Tetris:
         self.InitDASTimer()
         self.InitARRTimer()
 
-    def InitReleaseU(self, evt):
+    def InitRotation(self, evt):
         '''좌우 키보드 때면 초기화할 것들 정리해놓은 메소드'''
         self.rotate_flag = False
 
@@ -408,29 +420,41 @@ class Tetris:
         '''블럭 미리보기를 프린트하는 메소드'''
         begin_x = self.block_list_box_x
         begin_y = self.block_list_box_y
-
+        
+            
         for block_in in range(4):
             block = self.block_queue[block_in].GetCurrentBlock()
-            for y in range(4):
-                for x in range(4):
-                    if block[y][x]:
-                        stdscr.addstr(y + begin_y + block_in * 4, x * 2 + begin_x, '▣')
+            block_type = self.block_queue[block_in].GetBlockType()
+
+            if block_type == tetromino.I_BLOCK:
+                for y in range(1, 5):
+                    for x in range(1, 5):
+                        if block[y][x]:
+                            stdscr.addstr((y - 1) + begin_y + block_in * 4, (x - 1) * 2 + begin_x, '▣')
+            else:
+                for y in range(4):
+                    for x in range(4):
+                        if block[y][x]:
+                            stdscr.addstr(y + begin_y + block_in * 4, x * 2 + begin_x, '▣')
+            
     
     def PrintBlock(self, stdscr):
         '''움직이는 블럭을 프린트하는 메소드'''
         begin_x = self.game_box_x
         begin_y = self.game_box_y
-
+        
         block = self.block.GetCurrentBlock()
-        for y in range(4):
-            for x in range(4):
-                if block[y][x]:
-                    stdscr.addstr(y + begin_y + self.block_y, (self.block_x + x) * 2 + begin_x, '▣')
 
-        stdscr.addstr(0, 80, "right : {}".format(str(self.CheckBlockCollision(1))))
-        stdscr.addstr(1, 80, "left : {}".format(str(self.CheckBlockCollision(-1))))
-        stdscr.addstr(2, 80, "up : {}".format(str(self.CheckBlockCollision(-1, False))))
-        stdscr.addstr(3, 80, "down : {}".format(str(self.CheckBlockCollision(1, False))))
+        block_x = self.block_x
+        block_y = self.block_y
+
+        block_height = len(block)
+        block_width = len(block[0])
+
+        for y in range(block_height):
+            for x in range(block_width):
+                if block[y][x]:
+                    stdscr.addstr(y + begin_y + block_y, (block_x + x) * 2 + begin_x, '▣')
 
     
     def RecordBlock(self):
@@ -439,8 +463,12 @@ class Tetris:
         begin_y = self.block_y
 
         block = self.block.GetCurrentBlock()
-        for y in range(4):
-            for x in range(4):
+
+        block_height = len(block)
+        block_width = len(block[0])
+
+        for y in range(block_height):
+            for x in range(block_width):
                 if block[y][x]:
                     self.map[begin_y + y][begin_x + x] = block[y][x]
         

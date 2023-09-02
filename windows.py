@@ -185,8 +185,6 @@ def PrintStartMap(stdscr):
         
         if keyboard.is_pressed('enter'):
             return (arrow_y) % 2
-            
-        
                   
         
 
