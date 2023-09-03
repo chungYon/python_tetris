@@ -44,25 +44,29 @@ class Tetris:
             ]
 
         self.score = 0
-        self.block_type = 0
+        self.block = 0
+        self.block_hold = False
         self.block_x = 0
         self.block_y = 0
-        self.drop_speed = 1
-        self.st_speed = 1
+        self.drop_speed = 0.7
+        self.st_speed = 0.7
         self.das = 0.131
         self.das_flag = False
         self.arr = 0.015
         self.arr_flag = False
+        self.hold_flag = False
         self.rotate_flag = False
-        self.sdf = 0.01
+        self.sdf = 0.02
         self.stop = 2
         self.ceiling = 4
         self.map_height = 24
         self.map_width = 10
         self.game_box_x = 16
         self.game_box_y = 1
+        self.hold_box_x = 4
+        self.hold_box_y = 5
         self.block_list_box_x = 41
-        self.block_list_box_y = 1
+        self.block_list_box_y = 5
         
         '''
         블록타입:
@@ -126,6 +130,9 @@ class Tetris:
 
         while True:
 
+            if self.CheckGameOver():
+                break
+
             self.down_end_timer = time.time() # 드랍 타이머 세기
             self.drop_speed = self.st_speed # 기본 드랍 속도
 
@@ -134,7 +141,20 @@ class Tetris:
                 break
 
             if keyboard.is_pressed('c'):
-                pass
+
+                if not self.hold_flag:
+
+                    if self.block_hold:
+
+                        self.block_hold, self.block = self.block, self.block_hold
+                        
+                    else:
+
+                        self.block_hold = self.block
+                        self.block = self.block_queue.pop(0)
+                        
+                    self.hold_flag = True
+                    self.InitBlockPos()
 
             if keyboard.is_pressed('down'):
 
@@ -199,6 +219,7 @@ class Tetris:
                 self.stop_end_timer = time.time() # 굳히기 타이머 세기
                 self.InitDownTimer() # 드랍타이머 초기화
 
+
             else:
 
                 self.InitStopTimer()
@@ -211,12 +232,18 @@ class Tetris:
                 self.InitDownTimer() # 드랍타이머 초기화
                 self.block = self.block_queue.pop(0) # 하나 뽑기
                 self.InitBlockPos()
+                self.InitStopTimer()
                 self.CheckRefill()
+                self.hold_flag = False
 
             self.PrintMap(stdscr) # 맵 출력W
 
     def InitBlockPos(self):
+
         self.block_x, self.block_y = self.block.GetBlockSpawnPos() 
+
+        if self.CheckBlockCollision(0, self.block.GetCurrentBlock(), self.block_x, self.block_y):
+            self.block_y -= 1
 
     def DAS_ARR_MoveLeft(self): 
 
@@ -407,6 +434,18 @@ class Tetris:
         if len(self.block_queue) < 4:
             self.block_queue.extend(tetromino.GenerateRandomBlocks())  #여기 사실 잘 모르겠어...
 
+    def CheckGameOver(self):
+
+        for y in range(self.ceiling):
+
+            for x in range(self.map_width):
+
+                if self.map[y][x]:
+
+                    return True
+
+        return False 
+
     def PrintMap(self, stdscr):
         ''' 맵에 관련된 모든 것을 프린트하는 메소드'''
         begin_x = self.game_box_x
@@ -416,10 +455,11 @@ class Tetris:
         windows.PrintGameMap(stdscr)
         self.PrintBlockList(stdscr)
         self.PrintBlock(stdscr)
+        self.PrintHold(stdscr)
 
         for y in range(self.map_height):
             for x in range(self.map_width):
-                if self.map[y][x] != 0:
+                if self.map[y][x] != 0 and y + begin_y >= self.ceiling:
                     stdscr.addstr(y + begin_y, x * 2 + begin_x, u'▣')
                 
         stdscr.refresh()
@@ -438,12 +478,12 @@ class Tetris:
                 for y in range(1, 5):
                     for x in range(1, 5):
                         if block[y][x]:
-                            stdscr.addstr((y - 1) + begin_y + self.ceiling + block_in * 4, (x - 1) * 2 + begin_x, '▣')
+                            stdscr.addstr((y - 1) + begin_y + block_in * 4, (x - 1) * 2 + begin_x, '▣')
             else:
                 for y in range(4):
                     for x in range(4):
                         if block[y][x]:
-                            stdscr.addstr(y + begin_y + self.ceiling + block_in * 4, x * 2 + begin_x, '▣')
+                            stdscr.addstr(y + begin_y + block_in * 4, x * 2 + begin_x, '▣')
             
     
     def PrintBlock(self, stdscr):
@@ -463,6 +503,31 @@ class Tetris:
             for x in range(block_width):
                 if block[y][x] and y + block_y >= self.ceiling:
                     stdscr.addstr(y + begin_y + block_y, (block_x + x) * 2 + begin_x, '▣')
+
+    def PrintHold(self, stdscr):
+        '''움직이는 블럭을 프린트하는 메소드'''
+
+        if self.block_hold:
+
+            begin_x = self.hold_box_x
+            begin_y = self.hold_box_y
+            
+            block = self.block_hold.GetCurrentBlock()
+            block_type = self.block_hold.GetBlockType()
+
+            block_height = len(block)
+            block_width = len(block[0])
+
+            if block_type == tetromino.I_BLOCK:
+                for y in range(1, 5):
+                    for x in range(1, 5):
+                        if block[y][x]:
+                            stdscr.addstr((y - 1) + begin_y, (x - 1) * 2 + begin_x, '▣')
+            else:
+                for y in range(4):
+                    for x in range(4):
+                        if block[y][x]:
+                            stdscr.addstr(y + begin_y, x * 2 + begin_x, '▣')
 
     
     def RecordBlock(self):

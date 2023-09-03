@@ -40,7 +40,6 @@ def PrintGameMap(stdscr):
     stdscr.addstr(21 + 4,15,'┗━━━━━━━━━━━━━━━━━━━━┛')    
 
 
-
     #  12x18
     # 시작점 : (1 + 4, 41)
     stdscr.addstr(0 + 4,40,'┏━━━━━━━━┓') 

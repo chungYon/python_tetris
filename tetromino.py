@@ -56,6 +56,9 @@ class Tetromino:
         self.block_type = block_type
         self.rotation = 0
     
+    def InitRotation(self):
+        self.rotation = 0
+    
     def Rotate(self, clockwise=True):
         if clockwise:
             self.rotation = (self.rotation + 1) % ROTATION_NUM
