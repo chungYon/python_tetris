@@ -33,6 +33,14 @@ class Tetris:
             [0,0,0,0,0,0,0,0,0,0],
             [0,0,0,0,0,0,0,0,0,0],
             [0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0],
             ]
 
         self.score = 0
@@ -48,7 +56,8 @@ class Tetris:
         self.rotate_flag = False
         self.sdf = 0.01
         self.stop = 2
-        self.map_height = 20
+        self.ceiling = 4
+        self.map_height = 24
         self.map_width = 10
         self.game_box_x = 16
         self.game_box_y = 1
@@ -207,8 +216,7 @@ class Tetris:
             self.PrintMap(stdscr) # 맵 출력W
 
     def InitBlockPos(self):
-        self.block_x = self.block.GetBlockSpawnX()
-        self.block_y = 0
+        self.block_x, self.block_y = self.block.GetBlockSpawnPos() 
 
     def DAS_ARR_MoveLeft(self): 
 
@@ -409,8 +417,8 @@ class Tetris:
         self.PrintBlockList(stdscr)
         self.PrintBlock(stdscr)
 
-        for y in range(20):
-            for x in range(10):
+        for y in range(self.map_height):
+            for x in range(self.map_width):
                 if self.map[y][x] != 0:
                     stdscr.addstr(y + begin_y, x * 2 + begin_x, u'▣')
                 
@@ -430,12 +438,12 @@ class Tetris:
                 for y in range(1, 5):
                     for x in range(1, 5):
                         if block[y][x]:
-                            stdscr.addstr((y - 1) + begin_y + block_in * 4, (x - 1) * 2 + begin_x, '▣')
+                            stdscr.addstr((y - 1) + begin_y + self.ceiling + block_in * 4, (x - 1) * 2 + begin_x, '▣')
             else:
                 for y in range(4):
                     for x in range(4):
                         if block[y][x]:
-                            stdscr.addstr(y + begin_y + block_in * 4, x * 2 + begin_x, '▣')
+                            stdscr.addstr(y + begin_y + self.ceiling + block_in * 4, x * 2 + begin_x, '▣')
             
     
     def PrintBlock(self, stdscr):
@@ -453,7 +461,7 @@ class Tetris:
 
         for y in range(block_height):
             for x in range(block_width):
-                if block[y][x]:
+                if block[y][x] and y + block_y >= self.ceiling:
                     stdscr.addstr(y + begin_y + block_y, (block_x + x) * 2 + begin_x, '▣')
 
     

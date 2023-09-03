@@ -48,8 +48,10 @@ class Tetromino:
         ]
 
     block_spawn_x = [2, 3, 3, 3, 3, 3, 3]
+    block_spawn_y = [2, 3, 3, 3, 3, 3, 3]
 
     def __init__(self, block_type):
+
 
         self.block_type = block_type
         self.rotation = 0
@@ -61,7 +63,7 @@ class Tetromino:
             self.rotation -= 1
 
             if self.rotation < 0:
-                
+
                 self.rotation = ROTATION_NUM - 1
     
     def RotatePeek(self, clockwise=True):
@@ -129,9 +131,9 @@ class Tetromino:
 
         return Tetromino.block_list[self.block_type][self.rotation]   
     
-    def GetBlockSpawnX(self):
+    def GetBlockSpawnPos(self):
 
-        return Tetromino.block_spawn_x[self.block_type]
+        return (Tetromino.block_spawn_x[self.block_type], Tetromino.block_spawn_y[self.block_type])
 
     def GetBlockType(self):
 
