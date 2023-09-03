@@ -1,4 +1,5 @@
 import curses
+import keyboard
 from curses import wrapper
 
 def PrintGameMap(stdscr):
@@ -61,14 +62,6 @@ def PrintGameMap(stdscr):
     stdscr.addstr(16,40,'┃        ┃')
     stdscr.addstr(17,40,'┗━━━━━━━━┛')
 
-if __name__ == '__main__':
-    wrapper(PrintGameMap)
-
-
-import curses
-import keyboard
-from curses import wrapper
-
 def PrintSettingMap(stdscr):
     global arrow_flag
     arrow_flag= False
@@ -124,17 +117,6 @@ def PrintSettingMap(stdscr):
             keyboard.on_release_key('up', InitArrowFlag)
             
 
-        
-
-    
-if __name__ == '__main__':
-    wrapper(PrintSettingMap)
-
-
-import curses
-import keyboard
-from curses import wrapper
-
 def PrintStartMap(stdscr):
     curses.init_pair(1, curses.COLOR_WHITE,curses.COLOR_RED)
     RED_AND_WHITE= curses.color_pair(1)
@@ -186,7 +168,4 @@ def PrintStartMap(stdscr):
         if keyboard.is_pressed('enter'):
             return (arrow_y) % 2
                   
-        
 
-if __name__ == '__main__':
-    wrapper(PrintStartMap)

@@ -55,8 +55,14 @@ class Tetromino:
         self.rotation = 0
     
     def Rotate(self, clockwise=True):
+        if clockwise:
+            self.rotation = (self.rotation + 1) % ROTATION_NUM
+        else:
+            self.rotation -= 1
 
-        self.rotation = (self.rotation + 1) % ROTATION_NUM
+            if self.rotation < 0:
+                
+                self.rotation = ROTATION_NUM - 1
     
     def RotatePeek(self, clockwise=True):
 
