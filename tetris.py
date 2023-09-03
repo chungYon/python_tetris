@@ -133,12 +133,11 @@ class Tetris:
             if self.CheckGameOver():
                 break
 
+            if keyboard.is_pressed('esc'):
+                break
+
             self.down_end_timer = time.time() # 드랍 타이머 세기
             self.drop_speed = self.st_speed # 기본 드랍 속도
-
-            if keyboard.is_pressed('esc'):
-
-                break
 
             if keyboard.is_pressed('c'):
 
@@ -236,6 +235,7 @@ class Tetris:
                 self.CheckRefill()
                 self.hold_flag = False
 
+            self.CheckLines()
             self.PrintMap(stdscr) # 맵 출력W
 
     def InitBlockPos(self):
@@ -324,6 +324,9 @@ class Tetris:
                     line_flag = False
 
             if line_flag:
+                del self.map[y]
+                self.map.insert(0, [0 for _ in range(self.map_width)])
+                y -= 1
                 line_count += 1
 
         
