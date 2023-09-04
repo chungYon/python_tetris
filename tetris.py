@@ -12,36 +12,7 @@ import windows
 class Tetris:
 
     def __init__(self):
-        self.map = [
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0],
-            ]
+        
 
         self.score = 0
         self.block = 0
@@ -56,6 +27,7 @@ class Tetris:
         self.arr_flag = False
         self.hold_flag = False
         self.rotate_flag = False
+        self.space_flag = False
         self.sdf = 0.02
         self.stop = 2
         self.ceiling = 4
@@ -67,6 +39,8 @@ class Tetris:
         self.hold_box_y = 5
         self.block_list_box_x = 42
         self.block_list_box_y = 5
+
+        self.map = [[0 for _ in range(self.map_width)] for _ in range(self.map_height)]
         
         '''
         블록타입:
@@ -151,9 +125,21 @@ class Tetris:
 
                         self.block_hold = self.block
                         self.block = self.block_queue.pop(0)
-                        
+
+                    self.block_hold.InitRotation()
                     self.hold_flag = True
                     self.InitBlockPos()
+            
+            if keyboard.is_pressed('space'):
+                if not self.space_flag:
+
+                    while not self.CheckBlockCollision(1, self.block.GetCurrentBlock(), self.block_x, self.block_y, False):
+
+                        self.DownBlock()
+                    
+                    self.space_flag = True
+                    self.stop_end_timer = self.stop_start_timer + self.stop + 1
+                
 
             if keyboard.is_pressed('down'):
 
@@ -197,31 +183,29 @@ class Tetris:
             
             keyboard.on_release_key('up', self.InitRotation)
             keyboard.on_release_key('z', self.InitRotation)
+            keyboard.on_release_key('space', self.InitSpace)
             keyboard.on_release_key('left', self.InitReleaseLR) # 키를 땔시에 작동하는 함수
             keyboard.on_release_key('right', self.InitReleaseLR)
             
             down_elapsed_time = self.GetElapsedDownTime() # 경과시간 구하기
 
-            # 드랍 타이머
-            if down_elapsed_time > self.drop_speed: # 드랍 시간이 지났다면
 
-                # 블럭이 맨 밑바닥에 없다면
+            # 바닥에서 굳히는 타이머
+            if not self.space_flag:
 
-                if not self.CheckBlockCollision(1, self.block.GetCurrentBlock(), self.block_x, self.block_y, False): # 세로로 장애물이 없다면
+                if self.CheckBlockCollision(1, self.block.GetCurrentBlock(), self.block_x, self.block_y, False):  # 세로로 장애물이 있다면
+
+                    self.stop_end_timer = time.time() # 굳히기 타이머 세기
+                    self.InitDownTimer() # 드랍타이머 초기화
+
+                else:
+
+                    if down_elapsed_time > self.drop_speed:
 
                         self.InitDownTimer() # 드랍 타이머 초기화
                         self.DownBlock() # 블럭 내리기
 
-            # 바닥에서 굳히는 타이머
-            if self.CheckBlockCollision(1, self.block.GetCurrentBlock(), self.block_x, self.block_y, False):  # 세로로 장애물이 없다면
-
-                self.stop_end_timer = time.time() # 굳히기 타이머 세기
-                self.InitDownTimer() # 드랍타이머 초기화
-
-
-            else:
-
-                self.InitStopTimer()
+                    self.InitStopTimer()
 
             stop_elapsed_time = self.GetElapsedStopTime() # 굳히기 타이머 경과시간 구하기
 
@@ -244,6 +228,9 @@ class Tetris:
 
         if self.CheckBlockCollision(0, self.block.GetCurrentBlock(), self.block_x, self.block_y):
             self.block_y -= 1
+        
+    def InitSpace(self, evt):
+        self.space_flag = False
 
     def DAS_ARR_MoveLeft(self): 
 
