@@ -135,7 +135,7 @@ class Tetris:
             if keyboard.is_pressed('space'):
                 if not self.space_flag:
 
-                    self.block_y = self.pre_block_y
+                    self.block_y = self.pre_block_y 
                     self.space_flag = True
                     self.stop_end_timer = self.stop_start_timer + self.stop + 1
                 
@@ -189,8 +189,6 @@ class Tetris:
             
             down_elapsed_time = self.GetElapsedDownTime() # 경과시간 구하기
 
-
-            
             if not self.space_flag:
 
                 if self.CheckBlockCollision(1, self.block.GetCurrentBlock(), self.block_x, self.block_y, False):  # 세로로 장애물이 있다면
@@ -218,7 +216,7 @@ class Tetris:
                 self.InitStopTimer()
                 self.hold_flag = False
 
-            self.CheckLines()
+            self.score += self.CheckLines()
             self.CheckRefill()
             self.PrintMap(stdscr) # 맵 출력W
 
@@ -452,6 +450,8 @@ class Tetris:
             for x in range(self.map_width):
                 if self.map[y][x] != 0 and y + begin_y >= self.ceiling:
                     stdscr.addstr(y + begin_y, x * 2 + begin_x, u'▣')
+
+        stdscr.addstr(begin_y + self.map_height + 1, begin_x, "score : {}".format(self.score))
                 
         stdscr.refresh()
     
