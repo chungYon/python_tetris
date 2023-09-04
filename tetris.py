@@ -19,6 +19,8 @@ class Tetris:
         self.block_hold = False
         self.block_x = 0
         self.block_y = 0
+        self.pre_block_x = 0
+        self.pre_block_y = 0
         self.drop_speed = 0.7
         self.st_speed = 0.7
         self.das = 0.131
@@ -133,10 +135,7 @@ class Tetris:
             if keyboard.is_pressed('space'):
                 if not self.space_flag:
 
-                    while not self.CheckBlockCollision(1, self.block.GetCurrentBlock(), self.block_x, self.block_y, False):
-
-                        self.DownBlock()
-                    
+                    self.block_y = self.pre_block_y
                     self.space_flag = True
                     self.stop_end_timer = self.stop_start_timer + self.stop + 1
                 
@@ -177,20 +176,21 @@ class Tetris:
 
                 self.DAS_ARR_MoveLeft() # 왼쪽 무빙 담당
             
-            elif keyboard.is_pressed('right'):# 오른쪽 무빙 담당
+            elif keyboard.is_pressed('right'):
 
-                self.DAS_ARR_MoveRight()
+                self.DAS_ARR_MoveRight() # 오른쪽 무빙 담당
             
+            # 키를 땔시에 작동하는 함수들
             keyboard.on_release_key('up', self.InitRotation)
             keyboard.on_release_key('z', self.InitRotation)
             keyboard.on_release_key('space', self.InitSpace)
-            keyboard.on_release_key('left', self.InitReleaseLR) # 키를 땔시에 작동하는 함수
+            keyboard.on_release_key('left', self.InitReleaseLR) 
             keyboard.on_release_key('right', self.InitReleaseLR)
             
             down_elapsed_time = self.GetElapsedDownTime() # 경과시간 구하기
 
 
-            # 바닥에서 굳히는 타이머
+            
             if not self.space_flag:
 
                 if self.CheckBlockCollision(1, self.block.GetCurrentBlock(), self.block_x, self.block_y, False):  # 세로로 장애물이 있다면
@@ -198,7 +198,7 @@ class Tetris:
                     self.stop_end_timer = time.time() # 굳히기 타이머 세기
                     self.InitDownTimer() # 드랍타이머 초기화
 
-                else:
+                else: # 세로로 장애물이 없다면
 
                     if down_elapsed_time > self.drop_speed:
 
@@ -444,8 +444,9 @@ class Tetris:
         stdscr.clear()
         windows.PrintGameMap(stdscr)
         self.PrintBlockList(stdscr)
-        self.PrintBlock(stdscr)
         self.PrintHold(stdscr)
+        self.PrintPreviewBlock(stdscr)
+        self.PrintBlock(stdscr)
 
         for y in range(self.map_height):
             for x in range(self.map_width):
@@ -493,6 +494,27 @@ class Tetris:
             for x in range(block_width):
                 if block[y][x] and y + block_y >= self.ceiling:
                     stdscr.addstr(y + begin_y + block_y, (block_x + x) * 2 + begin_x, '▣')
+    
+    def PrintPreviewBlock(self, stdscr):
+        '''움직이는 블럭을 프린트하는 메소드'''
+        begin_x = self.game_box_x
+        begin_y = self.game_box_y
+        
+        pre_block = self.block.GetCurrentBlock()
+
+        self.pre_block_x = self.block_x
+        self.pre_block_y = self.block_y
+
+        block_height = len(pre_block)
+        block_width = len(pre_block[0])
+
+        while not self.CheckBlockCollision(1, pre_block, self.pre_block_x, self.pre_block_y, False):
+            self.pre_block_y += 1
+
+        for y in range(block_height):
+            for x in range(block_width):
+                if pre_block[y][x]:
+                    stdscr.addstr(y + begin_y + self.pre_block_y, (self.pre_block_x + x) * 2 + begin_x, '▧')
 
     def PrintHold(self, stdscr):
         '''움직이는 블럭을 프린트하는 메소드'''
