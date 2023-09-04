@@ -61,11 +61,11 @@ class Tetris:
         self.ceiling = 4
         self.map_height = 24
         self.map_width = 10
-        self.game_box_x = 16
+        self.game_box_x = 17
         self.game_box_y = 1
-        self.hold_box_x = 4
+        self.hold_box_x = 5
         self.hold_box_y = 5
-        self.block_list_box_x = 41
+        self.block_list_box_x = 42
         self.block_list_box_y = 5
         
         '''
@@ -232,10 +232,10 @@ class Tetris:
                 self.block = self.block_queue.pop(0) # 하나 뽑기
                 self.InitBlockPos()
                 self.InitStopTimer()
-                self.CheckRefill()
                 self.hold_flag = False
 
             self.CheckLines()
+            self.CheckRefill()
             self.PrintMap(stdscr) # 맵 출력W
 
     def InitBlockPos(self):
