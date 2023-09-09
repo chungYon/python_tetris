@@ -6,8 +6,7 @@ def MakeBlockList():
     ex)block[i][j][l][k]
     i: 블록타입, j : 회전모양, l : 회전모양의 y좌표, k 회전모양의 x좌표
     '''
-
-
+    
     data = '''
 
 00000000000000000100

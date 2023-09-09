@@ -158,7 +158,7 @@ def GenerateRandomBlock():
 def GenerateRandomBlocks():
     # 세트에 사용할 블록 타입들을 리스트로 정의
     block_type_set = [I_BLOCK, L_BLOCK, J_BLOCK, T_BLOCK, S_BLOCK, Z_BLOCK, O_BLOCK]
-    selected_block = []
+    selected_blocks = []
 
     # 한 세트에서 7개의 블록이 모두 다른 블록 타입으로 뽑힐 때까지 반복
     while block_type_set:
@@ -172,6 +172,6 @@ def GenerateRandomBlocks():
         random_block_type = random_block.block_type
         
         block_type_set.remove(random_block_type)
-        selected_block.append(random_block)
+        selected_blocks.append(random_block)
 
-    return selected_block
+    return selected_blocks

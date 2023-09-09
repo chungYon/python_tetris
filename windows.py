@@ -1,6 +1,7 @@
 import curses
 import keyboard
 from curses import wrapper
+from curses.textpad import Textbox
 
 def PrintGameMap(stdscr):
     
@@ -80,11 +81,22 @@ def PrintSettingMap(stdscr):
 
     
     curses.init_pair(1, curses.COLOR_WHITE,curses.COLOR_RED)
-    RED_AND_WHITE= curses.color_pair(1)
+
+    wins = []
+    boxs = []
+
+    for i in range(3):
+        wins.append(curses.newwin(1, 10, i, 18)) 
+        boxs.append(Textbox(wins[i])) 
+
+    RED_AND_WHITE = curses.color_pair(1)
+
     arrow_y = 0
     PrintMap()
+    stdscr.clear()
+
     while True:
-        
+
             if keyboard.is_pressed('esc'):
                 break
 
@@ -103,14 +115,16 @@ def PrintSettingMap(stdscr):
                     arrow_flag = True
 
             if keyboard.is_pressed('enter'):
-                if arrow_y == 0:
-                    pass
-                elif arrow_y == 1:   
-                    pass
-                elif arrow_y == 2:
-                    pass
+                
+                if arrow_y == 3:
+                    settings = []
+
+                    for i in range(3):
+                        settings.append(float(boxs[i].gather()))
+                    
+                    return settings
                 else:
-                    break
+                    boxs[arrow_y].edit()
 
             keyboard.on_release_key('down', InitArrowFlag)
             keyboard.on_release_key('up', InitArrowFlag)

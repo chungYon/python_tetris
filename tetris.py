@@ -90,7 +90,7 @@ class Tetris:
         start_arrow = windows.PrintStartMap(start_win) # 화살표 위치 받아오기
 
         if start_arrow: # 에 화살표가 있다면
-            windows.PrintSettingMap(stdscr) #세팅 화면 띄우기
+            self.das, self.arr, self.sdf = windows.PrintSettingMap(stdscr) #세팅 화면 띄우기
         
         self.Game(stdscr) # 게임 시작
         
@@ -184,9 +184,6 @@ class Tetris:
                 if keyboard.is_pressed('right'):
 
                     self.DAS_ARR_MoveRight() # 오른쪽 무빙 담당
-            
-            
-                
             
             # 키를 땔시에 작동하는 함수들
             keyboard.on_release_key('up', self.InitRotation)
