@@ -171,14 +171,22 @@ class Tetris:
                         self.block_y = pos[1]
                         self.block.Rotate(False)
                         self.rotate_flag = True
-
-            if keyboard.is_pressed('left'):
-
-                self.DAS_ARR_MoveLeft() # 왼쪽 무빙 담당
             
-            elif keyboard.is_pressed('right'):
+            if keyboard.is_pressed('right+left'):
 
-                self.DAS_ARR_MoveRight() # 오른쪽 무빙 담당
+                self.InitReleaseLR(0)
+            else:
+
+                if keyboard.is_pressed('left'):
+
+                    self.DAS_ARR_MoveLeft() # 왼쪽 무빙 담당
+                
+                if keyboard.is_pressed('right'):
+
+                    self.DAS_ARR_MoveRight() # 오른쪽 무빙 담당
+            
+            
+                
             
             # 키를 땔시에 작동하는 함수들
             keyboard.on_release_key('up', self.InitRotation)
